@@ -2,6 +2,9 @@
 (require racket/list)
 
 (struct v (val type))
+(define (push stk elt) (append stk (list elt)))
+(define (pop stk) (car (reverse stk)))
+(define (ret-pop stk) (reverse (cdr (reverse stk))))
 
 (define (write-spec ls) 
   (if (list? ls) (begin (display "(") (map write-spec ls) (display ") "))
@@ -30,8 +33,14 @@
         [(char=? (strcar l) #\") (v l 'String)]
         [else (v l 'Sym)]))
 
+(define (push~ stk s)
+  (cond [(equal? (v-val s) "|") (push stk '())]
+        [else (push (ret-pop stk) (push (pop stk) s))]))
+(define (process stk n)
+  (if (empty? stk) n (process (cdr stk) (push~ n (car stk)))))
+
 (define (main)
-  (write-spec (map lex (string-split-spec (read-line))))
+  (write-spec (process (map lex (string-split-spec (read-line))) '(())))
   (main))
 
 (main)
