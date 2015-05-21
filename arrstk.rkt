@@ -11,7 +11,9 @@
 
 (define (write-spec ls) 
   (if (list? ls) (begin (display "(") (map write-spec ls) (display ") "))
-      (if (v? ls) (printf "(v ~a ~a)" (v-val ls) (v-type ls)) (write ls))))
+      (cond [(v? ls) (printf "(v ~a ~a)" (v-val ls) (v-type ls))] 
+            [(arr? ls) (printf "(arr ~a ~a)" (arr-len ls) (arr-type ls))]
+            [else (write ls)])))
 
 (define (string-split-spec str)
   (filter (λ (x) (not (empty? (string->list x)))) (splt str '())))
@@ -34,7 +36,6 @@
 (define (call-fun f stk)
   (if (not (member (v-val f) (map car funs*))) (printf "ERROR: function `~a' does not exist." (v-val f))
       (let* ([fn (findf (λ (x) (equal? (car x) (v-val f))) funs*)] [sub (take (reverse stk) (length (third fn)))])
-        (displayln sub)
         (if (member #f (map (λ (x y) (equal? (arr-type x) (v-type (car y)))) (third fn) sub)) (printf "ERROR: type mismatch.")
             (append (take stk (- (length stk) (length sub))) (second fn))))))
 
@@ -46,6 +47,7 @@
 
 (define (push~ stk s)
   (cond [(equal? (v-val s) "|") (push stk '())]
+        [(equal? (v-val s) "||") (append (take stk (- (length stk) 2)) (map (λ (x y) (list x y)) (pop (ret-pop stk)) (pop stk)))]
         [(equal? (v-type s) 'Sym) (call-fun s stk)]
         [else (push (ret-pop stk) (push (pop stk) s))]))
 (define (process stk n)
