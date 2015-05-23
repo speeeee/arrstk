@@ -48,13 +48,20 @@
 (define (push~ stk s)
   (cond [(equal? (v-val s) "|") (push stk '())]
         [(equal? (v-val s) "||") (append (take stk (- (length stk) 2)) (map (λ (x y) (list x y)) (pop (ret-pop stk)) (pop stk)))]
+        [(equal? (v-val s) "><") (append (take stk (- (length stk) 2)) (list (pop stk) (pop (ret-pop stk))))]
         [(equal? (v-type s) 'Sym) (call-fun s stk)]
         [else (push (ret-pop stk) (push (pop stk) s))]))
 (define (process stk n)
   (if (empty? stk) n (process (cdr stk) (push~ n (car stk)))))
 
+(define (write-stk stk)
+  (if (list? stk) (begin (map write-stk stk) (displayln ""))
+      (cond [(v? stk) (printf "~a " (v-val stk))] 
+            [(arr? stk) (printf "[# ~a ~a]" (arr-len stk) (arr-type stk))]
+            [else (write stk)])))
+
 (define (main)
-  (write-spec (process (map lex (string-split-spec (read-line))) '(())))
+  (write-stk (process (map lex (string-split-spec (read-line))) '(())))
   (main))
 
 (main)
