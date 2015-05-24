@@ -7,7 +7,7 @@
 (define (pop stk) (car (reverse stk)))
 (define (ret-pop stk) (reverse (cdr (reverse stk))))
 
-(define funs* (list (list "+" (list (arr 1 "Int")) (list (arr "a" "Int")))))
+(define funs* (list (list "+" (list (arr 1 "#Int")) (list (arr "a" "#Int")))))
 
 (define (write-spec ls) 
   (if (list? ls) (begin (display "(") (map write-spec ls) (display ") "))
@@ -40,8 +40,8 @@
             (append (take stk (- (length stk) (length sub))) (second fn))))))
 
 (define (lex l)
-  (cond [(or (char-numeric? (strcar l)) (char=? (strcar l) #\.)) (v l "Int")]
-        [(char=? (strcar l) #\") (v l "String")]
+  (cond [(or (char-numeric? (strcar l)) (char=? (strcar l) #\.)) (v l "#Int")]
+        [(char=? (strcar l) #\") (v l "#String")]
         [(char=? (strcar l) #\#) (v l 'Type)]
         [else (v l 'Sym)]))
 
@@ -49,7 +49,7 @@
   (cond [(equal? (v-val s) "|") (push stk '())]
         [(equal? (v-val s) "||") (append (take stk (- (length stk) 2)) (map (λ (x y) (list x y)) (pop (ret-pop stk)) (pop stk)))]
         [(equal? (v-val s) "><") (append (take stk (- (length stk) 2)) (list (pop stk) (pop (ret-pop stk))))]
-        [(equal? (v-val s) "<-") (list (append (list 'Seq) stk))]
+        [(equal? (v-val s) "<-") (list (append (list 'Seq) stk))] ;;; Use } instead as a way to apply to a seq.
         [(equal? (v-type s) 'Sym) (call-fun s stk)]
         [else (push (ret-pop stk) (push (pop stk) s))]))
 (define (process stk n)
